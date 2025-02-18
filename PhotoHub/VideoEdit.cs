@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Emgu.CV;
 
-namespace Proyecto_Final
+namespace PhotoHub
 {
     public partial class VideoEdit : Form
     {

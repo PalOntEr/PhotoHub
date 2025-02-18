@@ -7,21 +7,18 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Emgu.CV;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
-namespace Proyecto_Final
+namespace PhotoHub
 {
-    public partial class CameraEdit : Form
+    public partial class ImageEdit : Form
     {
 
         [DllImport("kernel.dll", EntryPoint = "GenerateHistograms", CallingConvention = CallingConvention.Cdecl)]
         public static extern void GPUHistogram(int width, int height, IntPtr pixels, IntPtr redHistogram, IntPtr greenHistogram, IntPtr blueHistogram);
-
+        
         [DllImport("kernel.dll", EntryPoint = "GrayscaleFilter", CallingConvention = CallingConvention.Cdecl)]
         public static extern void GPUGrayscale(int width, int height, IntPtr pixels, IntPtr result);
 
@@ -58,33 +55,30 @@ namespace Proyecto_Final
         [DllImport("kernel.dll", EntryPoint = "SketchFilter", CallingConvention = CallingConvention.Cdecl)]
         public static extern void GPUSketch(int width, int height, IntPtr pixels, IntPtr result);
 
-        [DllImport("kernel.dll", EntryPoint = "ColorDetection", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void GPUColorDetection(int width, int height, IntPtr pixels, IntPtr result, IntPtr color);
 
+        Bitmap image = null;
+        Bitmap filteredImage = null;
+        bool imageLoaded = false;
 
-        VideoCapture camera = null;
-        Bitmap frame = null;
-        Bitmap filteredFrame = null;
-        bool frameLoaded = false;
-        bool detectingColor = false;
-
-        int activeFilter = 0;
-
-        public CameraEdit()
+        public ImageEdit()
         {
             InitializeComponent();
         }
 
-        private void CameraButton_Click(object sender, EventArgs e)
+        private void ImageButton_Click(object sender, EventArgs e)
         {
-            ActivateCamera();
+            OpenFile();
+        }
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFile();
         }
 
         //private void LoadHistograms(Bitmap img)
         //{
         //    HistogramBar.Visible = true;
         //    HistogramBar.Value = 0;
-
+            
         //    int[] redHistogram = new int[256];
         //    int[] greenHistogram = new int[256];
         //    int[] blueHistogram = new int[256];
@@ -101,7 +95,7 @@ namespace Proyecto_Final
         //            HistogramBar.Value = (int)(((double)(i * img.Height + j) / (img.Width * img.Height)) * 100);
         //        }
         //    }
-
+            
         //    HistogramChart.Series["Green"].Points.Clear();
         //    HistogramChart.Series["Blue"].Points.Clear();
         //    HistogramChart.Series["Red"].Points.Clear();
@@ -123,35 +117,40 @@ namespace Proyecto_Final
 
         //}
 
-
         private void Grayscale_Click(object sender, EventArgs e)
         {
-            activeFilter = 1;
+            if (!imageLoaded) return;
+
+            filteredImage = CUDA.Checked ? CUDAGrayscale() : CPUGrayscale();
+            ImagePreview.Image = filteredImage ?? image;
+
+            LoadHistograms();
+
         }
         private Bitmap CUDAGrayscale()
         {
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUGrayscale(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUGrayscale(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
                 BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, newImage.Width, newImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
@@ -169,7 +168,7 @@ namespace Proyecto_Final
         {
             try
             {
-                Bitmap newImage = new Bitmap(frame.Width, frame.Height);
+                Bitmap newImage = new Bitmap(image.Width, image.Height);
 
                 ImageBar.Visible = true;
                 ImageBar.Value = 0;
@@ -178,7 +177,7 @@ namespace Proyecto_Final
                 {
                     for (int j = 0; j < newImage.Height; j++)
                     {
-                        Color pixel = filteredFrame.GetPixel(i, j);
+                        Color pixel = filteredImage.GetPixel(i, j);
 
                         int gray = (int)(pixel.R * 0.3 + pixel.G * 0.59 + pixel.B * 0.11);
                         Color newPixel = Color.FromArgb(gray, gray, gray);
@@ -201,36 +200,42 @@ namespace Proyecto_Final
 
         private void Sepia_Click(object sender, EventArgs e)
         {
-            activeFilter = 2;
+            if (!imageLoaded) return;
+
+            filteredImage = CUDA.Checked ? CUDASepia() : CPUSepia();
+            ImagePreview.Image = filteredImage;
+
+            LoadHistograms();
+
         }
         private Bitmap CUDASepia()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUSepia(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUSepia(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -246,7 +251,7 @@ namespace Proyecto_Final
         {
             try
             {
-                Bitmap newImage = new Bitmap(frame.Width, frame.Height);
+                Bitmap newImage = new Bitmap(image.Width, image.Height);
 
                 ImageBar.Visible = true;
                 ImageBar.Value = 0;
@@ -255,7 +260,7 @@ namespace Proyecto_Final
                 {
                     for (int j = 0; j < newImage.Height; j++)
                     {
-                        Color pixel = filteredFrame.GetPixel(i, j);
+                        Color pixel = filteredImage.GetPixel(i, j);
                         int gray = (int)(pixel.R * 0.3 + pixel.G * 0.59 + pixel.B * 0.11);
                         int newRed = Math.Min(255, gray + 40);
                         int newGreen = Math.Min(255, gray + 20);
@@ -280,36 +285,42 @@ namespace Proyecto_Final
 
         private void Negative_Click(object sender, EventArgs e)
         {
-            activeFilter = 3;
+            if (!imageLoaded) return;
+
+            filteredImage = CUDA.Checked ? CUDANegative() : CPUNegative();
+            ImagePreview.Image = filteredImage;
+
+            LoadHistograms();
+
         }
         private Bitmap CUDANegative()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUNegative(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUNegative(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -325,7 +336,7 @@ namespace Proyecto_Final
         {
             try
             {
-                Bitmap newImage = new Bitmap(frame.Width, frame.Height);
+                Bitmap newImage = new Bitmap(image.Width, image.Height);
 
                 ImageBar.Visible = true;
                 ImageBar.Value = 0;
@@ -334,7 +345,7 @@ namespace Proyecto_Final
                 {
                     for (int j = 0; j < newImage.Height; j++)
                     {
-                        Color pixel = filteredFrame.GetPixel(i, j);
+                        Color pixel = filteredImage.GetPixel(i, j);
                         Color newPixel = Color.FromArgb(255 - pixel.R, 255 - pixel.G, 255 - pixel.B);
                         newImage.SetPixel(i, j, newPixel);
                         ImageBar.Value = (int)(((double)(i * newImage.Height + j) / (newImage.Width * newImage.Height)) * 100);
@@ -355,36 +366,48 @@ namespace Proyecto_Final
 
         private void GaussianBlur_Click(object sender, EventArgs e)
         {
-            activeFilter = 4;
+            if (!imageLoaded) return;
+
+            filteredImage = CUDA.Checked ? CUDAGaussian() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
+
+            LoadHistograms();
         }
         private Bitmap CUDAGaussian()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUGaussian(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUGaussian(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -399,38 +422,48 @@ namespace Proyecto_Final
 
         private void Emboss_Click(object sender, EventArgs e)
         {
-            activeFilter = 5;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            filteredImage = CUDA.Checked ? CUDAEmboss() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
+
+            LoadHistograms();
         }
         private Bitmap CUDAEmboss()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUEmboss(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUEmboss(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -445,40 +478,49 @@ namespace Proyecto_Final
 
         private void EdgeDetection_Click(object sender, EventArgs e)
         {
-            activeFilter = 6;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            //filteredImage = CUDA.Checked ? CUDAGaussian() : image;
+            filteredImage = CUDA.Checked ? CUDAEdge() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
 
             LoadHistograms();
         }
         private Bitmap CUDAEdge()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUEdge(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUEdge(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -493,39 +535,47 @@ namespace Proyecto_Final
 
         private void Thermal_Click(object sender, EventArgs e)
         {
-            activeFilter = 7;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            filteredImage = CUDA.Checked ? CUDAThermal() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
 
             LoadHistograms();
         }
         private Bitmap CUDAThermal()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUThermal(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUThermal(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -540,40 +590,48 @@ namespace Proyecto_Final
 
         private void Contrast_Click(object sender, EventArgs e)
         {
-            activeFilter = 8;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            filteredImage = CUDA.Checked ? CUDAContrast() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
 
             LoadHistograms();
         }
         private Bitmap CUDAContrast()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUContrast(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUContrast(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -588,40 +646,48 @@ namespace Proyecto_Final
 
         private void Sharpen_Click(object sender, EventArgs e)
         {
-            activeFilter = 9;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            filteredImage = CUDA.Checked ? CUDASharpen() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
 
             LoadHistograms();
         }
         private Bitmap CUDASharpen()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUSharpen(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUSharpen(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -636,40 +702,49 @@ namespace Proyecto_Final
 
         private void Noise_Click(object sender, EventArgs e)
         {
-            activeFilter = 10;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            filteredImage = CUDA.Checked ? CUDAGaussian() : image;
+            filteredImage = CUDA.Checked ? CUDANoise() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
 
             LoadHistograms();
         }
         private Bitmap CUDANoise()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUNoise(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUNoise(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -684,40 +759,48 @@ namespace Proyecto_Final
 
         private void TiltShift_Click(object sender, EventArgs e)
         {
-            activeFilter = 11;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            filteredImage = CUDA.Checked ? CUDATilt() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
 
             LoadHistograms();
         }
         private Bitmap CUDATilt()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUTilt(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUTilt(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -732,40 +815,48 @@ namespace Proyecto_Final
 
         private void Sketch_Click(object sender, EventArgs e)
         {
-            activeFilter = 12;
+            if (!imageLoaded) return;
 
-            CameraPreview.Image = filteredFrame ?? frame;
+            filteredImage = CUDA.Checked ? CUDASketch() : image;
+
+            if (!CUDA.Checked)
+            {
+                MessageBox.Show("This filter is not available for CPU processing");
+                return;
+            }
+
+            ImagePreview.Image = filteredImage;
 
             LoadHistograms();
         }
         private Bitmap CUDASketch()
         {
 
-            if (!frameLoaded) return null;
+            if (!imageLoaded) return null;
 
             try
             {
 
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
+                BitmapData bitmapData = filteredImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                int byteCount = bitmapData.Stride * filteredImage.Height;
                 byte[] pixels = new byte[byteCount];
                 Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
+                filteredImage.UnlockBits(bitmapData);
 
                 IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
                 IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
 
                 Marshal.Copy(pixels, 0, ptrPixels, byteCount);
 
-                GPUSketch(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult);
+                GPUSketch(filteredImage.Width, filteredImage.Height, ptrPixels, ptrResult);
 
                 Marshal.Copy(ptrResult, pixels, 0, byteCount);
 
                 Marshal.FreeHGlobal(ptrPixels);
                 Marshal.FreeHGlobal(ptrResult);
 
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                Bitmap newImage = new Bitmap(filteredImage.Width, filteredImage.Height);
+                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredImage.Width, filteredImage.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
                 Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
                 newImage.UnlockBits(newBitmapData);
 
@@ -778,124 +869,7 @@ namespace Proyecto_Final
             }
         }
 
-        private void DetectButton_Click(object sender, EventArgs e)
-        {
-            detectingColor = !detectingColor;
-            DetectButton.Visible = false;
-            StopDetecting.Visible = true;
-
-            LoadHistograms();
-        }
-        private Bitmap CUDADetectColor()
-        {
-
-            if (!frameLoaded) return null;
-
-            try
-            {
-
-                BitmapData bitmapData = filteredFrame.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                int byteCount = bitmapData.Stride * filteredFrame.Height;
-                byte[] pixels = new byte[byteCount];
-                Marshal.Copy(bitmapData.Scan0, pixels, 0, byteCount);
-                filteredFrame.UnlockBits(bitmapData);
-
-                IntPtr ptrPixels = Marshal.AllocHGlobal(byteCount);
-                IntPtr ptrResult = Marshal.AllocHGlobal(byteCount);
-                IntPtr ptrColor = Marshal.AllocHGlobal(3 * sizeof(char));
-
-                byte[] color = new byte[3] 
-                { 
-                    SelectedColor.BackColor.R,
-                    SelectedColor.BackColor.G,
-                    SelectedColor.BackColor.B
-                };
-
-                Marshal.Copy(pixels, 0, ptrPixels, byteCount);
-                Marshal.Copy(color, 0, ptrColor, 3);
-
-                GPUColorDetection(filteredFrame.Width, filteredFrame.Height, ptrPixels, ptrResult, ptrColor);
-
-                Marshal.Copy(ptrResult, pixels, 0, byteCount);
-
-                Marshal.FreeHGlobal(ptrPixels);
-                Marshal.FreeHGlobal(ptrResult);
-
-                Bitmap newImage = new Bitmap(filteredFrame.Width, filteredFrame.Height);
-                BitmapData newBitmapData = newImage.LockBits(new Rectangle(0, 0, filteredFrame.Width, filteredFrame.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-                Marshal.Copy(pixels, 0, newBitmapData.Scan0, byteCount);
-                newImage.UnlockBits(newBitmapData);
-
-                return newImage;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("An unexpected error ocurred: " + ex.Message);
-                return null;
-            }
-        }
-
-        private void StopDetecting_Click(object sender, EventArgs e)
-        {
-            detectingColor = !detectingColor;
-            DetectButton.Visible = true;
-            StopDetecting.Visible = false;
-
-            LoadHistograms();
-        }
-
-        private void ApplyActiveFilter()
-        {
-            switch (activeFilter)
-            {
-                case 1:
-                    filteredFrame = CUDA.Checked ? CUDAGrayscale() : CPUGrayscale();
-                    break;
-                case 2:
-                    filteredFrame = CUDA.Checked ? CUDASepia() : CPUSepia();
-                    break;
-                case 3:
-                    filteredFrame = CUDA.Checked ? CUDANegative() : CPUNegative();
-                    break;
-                case 4:
-                    filteredFrame = CUDA.Checked ? CUDAGaussian() : null;
-                    break;
-                case 5:
-                    filteredFrame = CUDA.Checked ? CUDAEmboss() : null;
-                    break;
-                case 6:
-                    filteredFrame = CUDA.Checked ? CUDAEdge() : null;
-                    break;
-                case 7:
-                    filteredFrame = CUDA.Checked ? CUDAThermal() : null;
-                    break;
-                case 8:
-                    filteredFrame = CUDA.Checked ? CUDAContrast() : null;
-                    break;
-                case 9:
-                    filteredFrame = CUDA.Checked ? CUDASharpen() : null;
-                    break;
-                case 10:
-                    filteredFrame = CUDA.Checked ? CUDANoise() : null;
-                    break;
-                case 11:
-                    filteredFrame = CUDA.Checked ? CUDATilt() : null;
-                    break;
-                case 12:
-                    filteredFrame = CUDA.Checked ? CUDASketch() : null;
-                    break;
-                default:
-                    filteredFrame = frame;
-                    break;
-            }
-
-            filteredFrame = detectingColor ? CUDADetectColor() : filteredFrame;
-
-            LoadHistograms();
-
-        }
-
-        private void PhotoButton_Click(object sender, EventArgs e)
+        private void SaveButton_Click(object sender, EventArgs e)
         {
             SaveFile();
         }
@@ -906,41 +880,41 @@ namespace Proyecto_Final
 
         private void RestoreButton_Click(object sender, EventArgs e)
         {
-            activeFilter = 0;
+            if (!imageLoaded) return;
+            filteredImage = image;
+            ImagePreview.Image = image;
+            LoadHistograms();
         }
 
         private void SaveFile()
         {
-            if (!frameLoaded) return;
+            if (!imageLoaded) return;
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "Image Files(*.jpg; *.jpeg; *.bmp)|*.jpg; *.jpeg; *.bmp";
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-                filteredFrame.Save(saveFileDialog.FileName);
+                filteredImage.Save(saveFileDialog.FileName);
             }
         }
-        private void ActivateCamera()
+        private void OpenFile()
         {
-            if (MessageBox.Show("Do you wish to activate your camera?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            OpenFileDialog openFileDialog = SelectedImage;
+            openFileDialog.Filter = "Image Files(*png; *.jpg; *.jpeg; *.bmp)|*.jpg; *.jpeg; *.bmp";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                camera = new VideoCapture(0, VideoCapture.API.Any);
+                string selectedFilePath = openFileDialog.FileName;
+                image = new Bitmap(selectedFilePath);
+                filteredImage = image;
 
-                frame = camera.QueryFrame().ToBitmap();
-                filteredFrame = frame;
-                CameraPreview.Image = frame;
-                frameLoaded = true;
+                ImagePreview.Image = image;
+                LoadHistograms();
 
-                CheckActiveFrame.Enabled = true;
-
-                CameraButton.Visible = false;
-                OffButton.Visible = true;
-
-                MessageBox.Show("The camera has been loaded succesfully", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                imageLoaded = true;
             }
         }
         private void ToggleButtons()
         {
-            CameraButton.Enabled = !CameraButton.Enabled;
+            ImageButton.Enabled = !ImageButton.Enabled;
             Grayscale.Enabled = !Grayscale.Enabled;
             Sepia.Enabled = !Sepia.Enabled;
             Negative.Enabled = !Negative.Enabled;
@@ -951,11 +925,16 @@ namespace Proyecto_Final
             Application.Exit();
         }
 
+        private void SelectedImage_FileOk(object sender, CancelEventArgs e)
+        {
+
+        }
+
         private void LoadHistograms()
         {
             HistogramBar.Visible = true;
             HistogramBar.Value = 0;
-            var histograms = GenerateHistogram(filteredFrame);
+            var histograms = GenerateHistogram(filteredImage);
             //HistogramWorker.RunWorkerAsync();
 
             HistogramChart.Series["Red"].Points.Clear();
@@ -984,13 +963,11 @@ namespace Proyecto_Final
         }
         private (int[] redHistogram, int[] greenHistogram, int[] blueHistogram) CUDAHistogram(Bitmap img)
         {
+            int width = img.Width;
+            int height = img.Height;
             int[] redHistogram = new int[256];
             int[] greenHistogram = new int[256];
             int[] blueHistogram = new int[256];
-            if (img == null) return(redHistogram, greenHistogram, blueHistogram);
-
-            int width = img.Width;
-            int height = img.Height;
 
             BitmapData bitmapData = img.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
             int byteCount = bitmapData.Stride * height;
@@ -1042,161 +1019,15 @@ namespace Proyecto_Final
 
             return (redHistogram, greenHistogram, blueHistogram);
         }
-
-        private void CheckActiveFrame_Tick(object sender, EventArgs e)
+        private void ClearHistograms()
         {
-
-            frame = camera.QueryFrame()?.ToBitmap();
-
-            if (frame == null)
-            {
-                CheckActiveFrame.Enabled = false;
-                MessageBox.Show("The camera has ended");
-                camera.Dispose();
-                return;
-            }
-
-            filteredFrame = frame;
-
-            ApplyActiveFilter();
-
-            CameraPreview.Image = filteredFrame ?? frame;
+            HistogramChart.Series["Red"].Points.Clear();
+            RedHistogram.Series["Red"].Points.Clear();
+            HistogramChart.Series["Green"].Points.Clear();
+            GreenHistogram.Series["Green"].Points.Clear();
+            HistogramChart.Series["Blue"].Points.Clear();
+            BlueHistogram.Series["Blue"].Points.Clear();
         }
 
-        private void BackwardsButton_Click(object sender, EventArgs e)
-        {
-            if (camera == null) return;
-
-        }
-
-        private void ForwardButton_Click(object sender, EventArgs e)
-        {
-            if (camera == null) return;
-
-        }
-
-        private void OffButton_Click(object sender, EventArgs e)
-        {
-
-            CameraPreview.Image = null;
-            frame = null;
-            filteredFrame = null;
-            frameLoaded = false;
-
-            CheckActiveFrame.Enabled = false;
-
-            camera.Dispose();
-
-            OffButton.Visible = false;
-            CameraButton.Visible = true;
-
-        }
-
-        private void ColorsButton_Click(object sender, EventArgs e)
-        {
-            if (ColorPicker.ShowDialog() == DialogResult.OK)
-            {
-                SelectedColor.BackColor = ColorPicker.Color;
-                SetCIELABValues(ColorPicker.Color);
-            }
-        }
-
-        private void CameraPreview_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (filteredFrame == null) return;
-
-            int frameWidth = filteredFrame.Width;
-            int frameHeight = filteredFrame.Height;
-            int pictureBoxWidth = CameraPreview.ClientSize.Width;
-            int pictureBoxHeight = CameraPreview.ClientSize.Height;
-
-            float scaleX;
-            float scaleY;
-            int offsetX;
-            int offsetY;
-
-            float ratioX = (float)pictureBoxWidth / frameWidth;
-            float ratioY = (float)pictureBoxHeight / frameHeight;
-            float scale = Math.Min(ratioX, ratioY);
-
-            scaleX = 1 / scale;
-            scaleY = 1 / scale;
-
-            int displayedWidth = (int)(frameWidth * scale);
-            int displayedHeight = (int)(frameHeight * scale);
-
-            offsetX = (pictureBoxWidth - displayedWidth) / 2;
-            offsetY = (pictureBoxHeight - displayedHeight) / 2;
-
-            int x = (int)((e.X - offsetX) * scaleX);
-            int y = (int)((e.Y - offsetY) * scaleY);
-
-            x = Math.Max(0, Math.Min(x, frameWidth - 1));
-            y = Math.Max(0, Math.Min(y, frameHeight - 1));
-
-            Color clickedColor = filteredFrame.GetPixel(x, y);
-            SelectedColor.BackColor = clickedColor;
-
-            SetCIELABValues(clickedColor);
-
-        }
-
-        private void SetCIELABValues(Color rgbColor)
-        {
-            (double L, double a, double b) = RGBtoLab();
-
-            LabelL.Text = $"L: {L}";
-            LabelA.Text = $"a: {a}";
-            LabelB.Text = $"b: {b}";
-
-            string quadrant = "";
-
-            if (L >= 50 && a >= 0 && b >= 0)
-                quadrant = "Cuadrante I: Cálido";
-            else if (L >= 50 && a < 0 && b >= 0)
-                quadrant = "Cuadrante II: Frío";
-            else if (L >= 50 && a < 0 && b < 0)
-                quadrant = "Cuadrante III: Frío";
-            else if (L >= 50 && a >= 0 && b < 0)
-                quadrant = "Cuadrante IV: Cálido";
-            else if (L < 50 && a >= 0 && b >= 0)
-                quadrant = "Cuadrante V: Cálido";
-            else if (L < 50 && a < 0 && b >= 0)
-                quadrant = "Cuadrante VI: Frío";
-            else if (L < 50 && a < 0 && b < 0)
-                quadrant = "Cuadrante VII: Frío";
-            else if (L < 50 && a >= 0 && b < 0)
-                quadrant = "Cuadrante VIII: Cálido";
-            else
-                quadrant = "Cuadrante Desconocido";
-        
-            LabelC.Text = quadrant;
-        }
-
-        private (double L, double a, double b) RGBtoLab()
-        {
-            double r = SelectedColor.BackColor.R / 255.0;
-            double g = SelectedColor.BackColor.G / 255.0;
-            double b = SelectedColor.BackColor.B / 255.0;
-
-            double x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
-            double y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
-            double z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
-
-            x = x / 0.95047;
-            y = y / 1.0;
-            z = z / 1.08883;
-
-            x = x > 0.008856 ? Math.Pow(x, 1.0 / 3.0) : (903.3 * x + 16.0) / 116.0;
-            y = y > 0.008856 ? Math.Pow(y, 1.0 / 3.0) : (903.3 * y + 16.0) / 116.0;
-            z = z > 0.008856 ? Math.Pow(z, 1.0 / 3.0) : (903.3 * z + 16.0) / 116.0;
-
-            double L = 116.0 * y - 16.0;
-            double A = 500.0 * (x - y);
-            double B = 200.0 * (y - z);
-
-            return (L, A, B);
-
-        }
     }
 }

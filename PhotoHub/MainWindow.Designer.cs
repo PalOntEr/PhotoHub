@@ -1,4 +1,4 @@
-﻿namespace Proyecto_Final
+﻿namespace PhotoHub
 {
     partial class MainWindow
     {

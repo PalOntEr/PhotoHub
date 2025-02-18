@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
-namespace Proyecto_Final
+namespace PhotoHub
 {
     internal static class Program
     {

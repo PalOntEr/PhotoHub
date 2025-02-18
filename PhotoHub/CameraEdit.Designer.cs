@@ -1,4 +1,4 @@
-﻿namespace Proyecto_Final
+﻿namespace PhotoHub
 {
     partial class CameraEdit
     {
@@ -122,7 +122,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.CameraPreview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.CameraPreview.Image = global::Proyecto_Final.Properties.Resources.PlagueDoctor;
+            this.CameraPreview.Image = global::PhotoHub.Properties.Resources.PlagueDoctor;
             this.CameraPreview.Location = new System.Drawing.Point(12, 41);
             this.CameraPreview.Name = "CameraPreview";
             this.CameraPreview.Size = new System.Drawing.Size(688, 339);

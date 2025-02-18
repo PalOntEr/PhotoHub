@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Proyecto_Final
+namespace PhotoHub
 {
     public partial class MainWindow : Form
     {

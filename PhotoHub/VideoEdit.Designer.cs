@@ -1,4 +1,4 @@
-﻿namespace Proyecto_Final
+﻿namespace PhotoHub
 {
     partial class VideoEdit
     {
@@ -114,7 +114,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.VideoPreview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.VideoPreview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.VideoPreview.Image = global::Proyecto_Final.Properties.Resources.PlagueDoctor;
+            this.VideoPreview.Image = global::PhotoHub.Properties.Resources.PlagueDoctor;
             this.VideoPreview.Location = new System.Drawing.Point(12, 41);
             this.VideoPreview.Name = "VideoPreview";
             this.VideoPreview.Size = new System.Drawing.Size(688, 339);

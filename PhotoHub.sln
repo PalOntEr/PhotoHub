@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35728.132
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoHub", "Proyecto Final\PhotoHub.csproj", "{330DACA3-9BFD-4A49-8AF1-4959DC095AE2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoHub", "PhotoHub\PhotoHub.csproj", "{330DACA3-9BFD-4A49-8AF1-4959DC095AE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

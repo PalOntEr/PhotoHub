@@ -1,4 +1,4 @@
-﻿namespace Proyecto_Final
+﻿namespace PhotoHub
 {
     partial class ImageEdit
     {
@@ -390,7 +390,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ImagePreview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.ImagePreview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ImagePreview.Image = global::Proyecto_Final.Properties.Resources.PlagueDoctor;
+            this.ImagePreview.Image = global::PhotoHub.Properties.Resources.PlagueDoctor;
             this.ImagePreview.Location = new System.Drawing.Point(12, 41);
             this.ImagePreview.Name = "ImagePreview";
             this.ImagePreview.Size = new System.Drawing.Size(688, 339);
