@@ -58,7 +58,7 @@ This repository contains a C# desktop application that applies various filters t
 2. **Build the C++ DLL**
 
     Ensure you have a C++ compiler and the NVIDIA CUDA Toolkit installed. Navigate to the `PhotoHub` directory and run the bash command.
-    After the command runs succesfully, move the `kernel.dll`, `kernel.exp` and `kernel.lib` files the the bin debug/release folder
+    After the command runs succesfully, move the `kernel.dll`, `kernel.exp` and `kernel.lib` files to the bin/debug or bin/release folder depending on your build settings
 
     ```bash
     nvcc -o kernel.dll --shared kernel.cu
