@@ -29,20 +29,20 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series7 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series8 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series9 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series10 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea7 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend7 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series11 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea8 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend8 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series12 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea13 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend13 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series19 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series20 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series21 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea14 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend14 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series22 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea15 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend15 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series23 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea16 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend16 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series24 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.SelectedImage = new System.Windows.Forms.OpenFileDialog();
             this.SaveImage = new System.Windows.Forms.SaveFileDialog();
             this.CameraPreview = new System.Windows.Forms.PictureBox();
@@ -54,6 +54,7 @@
             this.ColorsButton = new System.Windows.Forms.Button();
             this.HistogramBar = new System.Windows.Forms.ProgressBar();
             this.MainPanel = new System.Windows.Forms.Panel();
+            this.RestoreButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.LabelC = new System.Windows.Forms.Label();
             this.LabelB = new System.Windows.Forms.Label();
@@ -94,7 +95,6 @@
             this.BlueHistogram = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.ColorPicker = new System.Windows.Forms.ColorDialog();
             this.CheckActiveFrame = new System.Windows.Forms.Timer(this.components);
-            this.RestoreButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.CameraPreview)).BeginInit();
             this.MainPanel.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -250,6 +250,20 @@
             this.MainPanel.Size = new System.Drawing.Size(1109, 647);
             this.MainPanel.TabIndex = 0;
             // 
+            // RestoreButton
+            // 
+            this.RestoreButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.RestoreButton.BackColor = System.Drawing.Color.DimGray;
+            this.RestoreButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.RestoreButton.ForeColor = System.Drawing.SystemColors.HighlightText;
+            this.RestoreButton.Location = new System.Drawing.Point(220, 386);
+            this.RestoreButton.Name = "RestoreButton";
+            this.RestoreButton.Size = new System.Drawing.Size(202, 32);
+            this.RestoreButton.TabIndex = 12;
+            this.RestoreButton.Text = "Restore Image";
+            this.RestoreButton.UseVisualStyleBackColor = false;
+            this.RestoreButton.Click += new System.EventHandler(this.RestoreButton_Click);
+            // 
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -265,7 +279,7 @@
             this.groupBox1.Size = new System.Drawing.Size(200, 131);
             this.groupBox1.TabIndex = 29;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Información del Color";
+            this.groupBox1.Text = "Color Details";
             // 
             // LabelC
             // 
@@ -612,20 +626,21 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(128, 26);
-            this.openToolStripMenuItem.Text = "Open";
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.openToolStripMenuItem.Text = "Toggle Camera";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(128, 26);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(128, 26);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -657,42 +672,42 @@
             // 
             this.HistogramChart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.HistogramChart.BackColor = System.Drawing.Color.DimGray;
-            chartArea5.AxisX.IsLabelAutoFit = false;
-            chartArea5.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea5.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea5.AxisX.LineColor = System.Drawing.Color.White;
-            chartArea5.AxisX.Maximum = 255D;
-            chartArea5.AxisX.Minimum = 0D;
-            chartArea5.AxisY.IsLabelAutoFit = false;
-            chartArea5.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea5.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea5.AxisY.LineColor = System.Drawing.Color.White;
-            chartArea5.Name = "ChartArea1";
-            this.HistogramChart.ChartAreas.Add(chartArea5);
-            legend5.BackColor = System.Drawing.Color.DimGray;
-            legend5.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            legend5.ForeColor = System.Drawing.Color.White;
-            legend5.IsTextAutoFit = false;
-            legend5.Name = "Legend1";
-            this.HistogramChart.Legends.Add(legend5);
+            chartArea13.AxisX.IsLabelAutoFit = false;
+            chartArea13.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea13.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea13.AxisX.LineColor = System.Drawing.Color.White;
+            chartArea13.AxisX.Maximum = 255D;
+            chartArea13.AxisX.Minimum = 0D;
+            chartArea13.AxisY.IsLabelAutoFit = false;
+            chartArea13.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea13.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea13.AxisY.LineColor = System.Drawing.Color.White;
+            chartArea13.Name = "ChartArea1";
+            this.HistogramChart.ChartAreas.Add(chartArea13);
+            legend13.BackColor = System.Drawing.Color.DimGray;
+            legend13.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            legend13.ForeColor = System.Drawing.Color.White;
+            legend13.IsTextAutoFit = false;
+            legend13.Name = "Legend1";
+            this.HistogramChart.Legends.Add(legend13);
             this.HistogramChart.Location = new System.Drawing.Point(0, 0);
             this.HistogramChart.Name = "HistogramChart";
             this.HistogramChart.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.None;
-            series7.ChartArea = "ChartArea1";
-            series7.Color = System.Drawing.Color.Red;
-            series7.Legend = "Legend1";
-            series7.Name = "Red";
-            series8.ChartArea = "ChartArea1";
-            series8.Color = System.Drawing.Color.SeaGreen;
-            series8.Legend = "Legend1";
-            series8.Name = "Green";
-            series9.ChartArea = "ChartArea1";
-            series9.Color = System.Drawing.Color.RoyalBlue;
-            series9.Legend = "Legend1";
-            series9.Name = "Blue";
-            this.HistogramChart.Series.Add(series7);
-            this.HistogramChart.Series.Add(series8);
-            this.HistogramChart.Series.Add(series9);
+            series19.ChartArea = "ChartArea1";
+            series19.Color = System.Drawing.Color.Red;
+            series19.Legend = "Legend1";
+            series19.Name = "Red";
+            series20.ChartArea = "ChartArea1";
+            series20.Color = System.Drawing.Color.SeaGreen;
+            series20.Legend = "Legend1";
+            series20.Name = "Green";
+            series21.ChartArea = "ChartArea1";
+            series21.Color = System.Drawing.Color.RoyalBlue;
+            series21.Legend = "Legend1";
+            series21.Name = "Blue";
+            this.HistogramChart.Series.Add(series19);
+            this.HistogramChart.Series.Add(series20);
+            this.HistogramChart.Series.Add(series21);
             this.HistogramChart.Size = new System.Drawing.Size(370, 307);
             this.HistogramChart.TabIndex = 8;
             this.HistogramChart.Text = "chart1";
@@ -712,31 +727,31 @@
             // 
             this.RedHistogram.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.RedHistogram.BackColor = System.Drawing.Color.DimGray;
-            chartArea6.AxisX.IsLabelAutoFit = false;
-            chartArea6.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea6.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea6.AxisX.Maximum = 255D;
-            chartArea6.AxisX.Minimum = 0D;
-            chartArea6.AxisY.IsLabelAutoFit = false;
-            chartArea6.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea6.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea6.Name = "ChartArea1";
-            this.RedHistogram.ChartAreas.Add(chartArea6);
-            legend6.BackColor = System.Drawing.Color.DimGray;
-            legend6.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            legend6.ForeColor = System.Drawing.Color.White;
-            legend6.IsTextAutoFit = false;
-            legend6.Name = "Legend1";
-            this.RedHistogram.Legends.Add(legend6);
+            chartArea14.AxisX.IsLabelAutoFit = false;
+            chartArea14.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea14.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea14.AxisX.Maximum = 255D;
+            chartArea14.AxisX.Minimum = 0D;
+            chartArea14.AxisY.IsLabelAutoFit = false;
+            chartArea14.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea14.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea14.Name = "ChartArea1";
+            this.RedHistogram.ChartAreas.Add(chartArea14);
+            legend14.BackColor = System.Drawing.Color.DimGray;
+            legend14.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            legend14.ForeColor = System.Drawing.Color.White;
+            legend14.IsTextAutoFit = false;
+            legend14.Name = "Legend1";
+            this.RedHistogram.Legends.Add(legend14);
             this.RedHistogram.Location = new System.Drawing.Point(0, 0);
             this.RedHistogram.Name = "RedHistogram";
             this.RedHistogram.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.None;
-            series10.ChartArea = "ChartArea1";
-            series10.Color = System.Drawing.Color.Red;
-            series10.LabelForeColor = System.Drawing.Color.Empty;
-            series10.Legend = "Legend1";
-            series10.Name = "Red";
-            this.RedHistogram.Series.Add(series10);
+            series22.ChartArea = "ChartArea1";
+            series22.Color = System.Drawing.Color.Red;
+            series22.LabelForeColor = System.Drawing.Color.Empty;
+            series22.Legend = "Legend1";
+            series22.Name = "Red";
+            this.RedHistogram.Series.Add(series22);
             this.RedHistogram.Size = new System.Drawing.Size(370, 307);
             this.RedHistogram.TabIndex = 14;
             this.RedHistogram.Text = "chart1";
@@ -755,30 +770,30 @@
             // 
             this.GreenHistogram.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.GreenHistogram.BackColor = System.Drawing.Color.DimGray;
-            chartArea7.AxisX.IsLabelAutoFit = false;
-            chartArea7.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea7.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea7.AxisX.Maximum = 255D;
-            chartArea7.AxisX.Minimum = 0D;
-            chartArea7.AxisY.IsLabelAutoFit = false;
-            chartArea7.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea7.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea7.Name = "ChartArea1";
-            this.GreenHistogram.ChartAreas.Add(chartArea7);
-            legend7.BackColor = System.Drawing.Color.DimGray;
-            legend7.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            legend7.ForeColor = System.Drawing.Color.White;
-            legend7.IsTextAutoFit = false;
-            legend7.Name = "Legend1";
-            this.GreenHistogram.Legends.Add(legend7);
+            chartArea15.AxisX.IsLabelAutoFit = false;
+            chartArea15.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea15.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea15.AxisX.Maximum = 255D;
+            chartArea15.AxisX.Minimum = 0D;
+            chartArea15.AxisY.IsLabelAutoFit = false;
+            chartArea15.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea15.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea15.Name = "ChartArea1";
+            this.GreenHistogram.ChartAreas.Add(chartArea15);
+            legend15.BackColor = System.Drawing.Color.DimGray;
+            legend15.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            legend15.ForeColor = System.Drawing.Color.White;
+            legend15.IsTextAutoFit = false;
+            legend15.Name = "Legend1";
+            this.GreenHistogram.Legends.Add(legend15);
             this.GreenHistogram.Location = new System.Drawing.Point(0, 0);
             this.GreenHistogram.Name = "GreenHistogram";
             this.GreenHistogram.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.None;
-            series11.ChartArea = "ChartArea1";
-            series11.Color = System.Drawing.Color.SeaGreen;
-            series11.Legend = "Legend1";
-            series11.Name = "Green";
-            this.GreenHistogram.Series.Add(series11);
+            series23.ChartArea = "ChartArea1";
+            series23.Color = System.Drawing.Color.SeaGreen;
+            series23.Legend = "Legend1";
+            series23.Name = "Green";
+            this.GreenHistogram.Series.Add(series23);
             this.GreenHistogram.Size = new System.Drawing.Size(370, 307);
             this.GreenHistogram.TabIndex = 14;
             this.GreenHistogram.Text = "chart1";
@@ -797,30 +812,30 @@
             // 
             this.BlueHistogram.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.BlueHistogram.BackColor = System.Drawing.Color.DimGray;
-            chartArea8.AxisX.IsLabelAutoFit = false;
-            chartArea8.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea8.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea8.AxisX.Maximum = 255D;
-            chartArea8.AxisX.Minimum = 0D;
-            chartArea8.AxisY.IsLabelAutoFit = false;
-            chartArea8.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea8.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
-            chartArea8.Name = "ChartArea1";
-            this.BlueHistogram.ChartAreas.Add(chartArea8);
-            legend8.BackColor = System.Drawing.Color.DimGray;
-            legend8.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            legend8.ForeColor = System.Drawing.Color.White;
-            legend8.IsTextAutoFit = false;
-            legend8.Name = "Legend1";
-            this.BlueHistogram.Legends.Add(legend8);
+            chartArea16.AxisX.IsLabelAutoFit = false;
+            chartArea16.AxisX.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea16.AxisX.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea16.AxisX.Maximum = 255D;
+            chartArea16.AxisX.Minimum = 0D;
+            chartArea16.AxisY.IsLabelAutoFit = false;
+            chartArea16.AxisY.LabelStyle.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea16.AxisY.LabelStyle.ForeColor = System.Drawing.Color.White;
+            chartArea16.Name = "ChartArea1";
+            this.BlueHistogram.ChartAreas.Add(chartArea16);
+            legend16.BackColor = System.Drawing.Color.DimGray;
+            legend16.Font = new System.Drawing.Font("Segoe UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            legend16.ForeColor = System.Drawing.Color.White;
+            legend16.IsTextAutoFit = false;
+            legend16.Name = "Legend1";
+            this.BlueHistogram.Legends.Add(legend16);
             this.BlueHistogram.Location = new System.Drawing.Point(0, 0);
             this.BlueHistogram.Name = "BlueHistogram";
             this.BlueHistogram.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.None;
-            series12.ChartArea = "ChartArea1";
-            series12.Color = System.Drawing.Color.RoyalBlue;
-            series12.Legend = "Legend1";
-            series12.Name = "Blue";
-            this.BlueHistogram.Series.Add(series12);
+            series24.ChartArea = "ChartArea1";
+            series24.Color = System.Drawing.Color.RoyalBlue;
+            series24.Legend = "Legend1";
+            series24.Name = "Blue";
+            this.BlueHistogram.Series.Add(series24);
             this.BlueHistogram.Size = new System.Drawing.Size(370, 307);
             this.BlueHistogram.TabIndex = 14;
             this.BlueHistogram.Text = "chart1";
@@ -828,20 +843,6 @@
             // CheckActiveFrame
             // 
             this.CheckActiveFrame.Tick += new System.EventHandler(this.CheckActiveFrame_Tick);
-            // 
-            // RestoreButton
-            // 
-            this.RestoreButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.RestoreButton.BackColor = System.Drawing.Color.DimGray;
-            this.RestoreButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.RestoreButton.ForeColor = System.Drawing.SystemColors.HighlightText;
-            this.RestoreButton.Location = new System.Drawing.Point(220, 386);
-            this.RestoreButton.Name = "RestoreButton";
-            this.RestoreButton.Size = new System.Drawing.Size(202, 32);
-            this.RestoreButton.TabIndex = 12;
-            this.RestoreButton.Text = "Restore Image";
-            this.RestoreButton.UseVisualStyleBackColor = false;
-            this.RestoreButton.Click += new System.EventHandler(this.RestoreButton_Click);
             // 
             // CameraEdit
             // 

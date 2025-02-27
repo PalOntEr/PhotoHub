@@ -58,42 +58,43 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CameraEdit.cs">
+    <Compile Include="Filters\Filter.cs" />
+    <Compile Include="Forms\CameraEdit.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="CameraEdit.Designer.cs">
+    <Compile Include="Forms\CameraEdit.Designer.cs">
       <DependentUpon>CameraEdit.cs</DependentUpon>
     </Compile>
-    <Compile Include="VideoEdit.cs">
+    <Compile Include="Forms\VideoEdit.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="VideoEdit.Designer.cs">
+    <Compile Include="Forms\VideoEdit.Designer.cs">
       <DependentUpon>VideoEdit.cs</DependentUpon>
     </Compile>
-    <Compile Include="ImageEdit.cs">
+    <Compile Include="Forms\ImageEdit.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ImageEdit.Designer.cs">
+    <Compile Include="Forms\ImageEdit.Designer.cs">
       <DependentUpon>ImageEdit.cs</DependentUpon>
     </Compile>
-    <Compile Include="MainWindow.cs">
+    <Compile Include="Forms\MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainWindow.Designer.cs">
+    <Compile Include="Forms\MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="CameraEdit.resx">
+    <EmbeddedResource Include="Forms\CameraEdit.resx">
       <DependentUpon>CameraEdit.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="VideoEdit.resx">
+    <EmbeddedResource Include="Forms\VideoEdit.resx">
       <DependentUpon>VideoEdit.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ImageEdit.resx">
+    <EmbeddedResource Include="Forms\ImageEdit.resx">
       <DependentUpon>ImageEdit.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainWindow.resx">
+    <EmbeddedResource Include="Forms\MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
